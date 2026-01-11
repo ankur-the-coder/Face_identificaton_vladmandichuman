@@ -79,15 +79,23 @@ export class FaceDetectorComponent implements AfterViewInit {
     const userAgent = navigator.userAgent.toLowerCase();
     const isAndroid = /android/.test(userAgent);
     const isPortrait = window.innerHeight > window.innerWidth;
+    const isMobileDevice = /iphone|ipad|ipod|android/i.test(userAgent);
 
-    // Config: Android < 5GB = 1920x1440, else Max (4k+)
-    // Default Landscape (Desktop/Laptop)
+    // Config: Mobile devices need MUCH lower resolution to avoid crashes
+    // Desktop can handle higher resolution
     let videoConfig: MediaTrackConstraints = {
       width: { ideal: 3088 },
       height: { ideal: 2316 }
     };
 
-    if (isAndroid && memory < 5) {
+    if (isMobileDevice) {
+      // Mobile: Use 720p max to prevent memory crashes on iOS Safari
+      videoConfig = {
+        width: { ideal: 1920 },
+        height: { ideal: 1440 }
+      };
+      console.log('Mobile device detected, using 720p resolution');
+    } else if (isAndroid && memory < 5) {
       videoConfig = { width: { ideal: 1920 }, height: { ideal: 1440 } };
       console.log('Low memory Android detected, limiting resolution');
     }
