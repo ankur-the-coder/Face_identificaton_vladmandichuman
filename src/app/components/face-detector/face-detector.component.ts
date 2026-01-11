@@ -85,11 +85,11 @@ export class FaceDetectorComponent implements AfterViewInit {
     // Desktop can handle higher resolution
     let videoConfig: MediaTrackConstraints = {
       width: { ideal: 1920 },
-      height: { ideal: 1920 }
+      height: { ideal: 1440 }
     };
 
     if (isAndroid && memory < 5) {
-      videoConfig = { width: { ideal: 1920 }, height: { ideal: 1440 } };
+      videoConfig = { width: { ideal: 1280 }, height: { ideal: 720 } };
       console.log('Low memory Android detected, limiting resolution');
     }
 
