@@ -1,140 +1,46 @@
-<div class="relative w-full h-screen bg-neutral-900 overflow-hidden text-white font-sans selection:bg-cyan-500/30">
+<div class="relative w-full h-[100dvh] bg-neutral-900 overflow-hidden text-white font-sans selection:bg-cyan-500/30">
 
-    <!-- Background Gradient/Noise (Optional aesthetic boost) -->
+    <!-- Background Gradient/Noise -->
     <div
         class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-neutral-800 via-neutral-950 to-black z-0">
     </div>
 
-    <!-- Main Content Grid -->
+    <!-- Main Content Container -->
     <div class="relative z-10 w-full h-full flex flex-col md:flex-row">
 
-        <!-- Sidebar / Control Panel -->
+        <!-- 1. VIEWPORT (Camera & Modal) -->
         <div
-            class="w-full md:w-80 lg:w-96 bg-black/40 backdrop-blur-xl border-r border-white/5 flex flex-col p-6 gap-6 shadow-2xl">
-            <!-- Header -->
-            <div class="flex items-center gap-3 pb-6 border-b border-white/5">
+            class="absolute inset-0 md:relative md:flex-1 bg-black flex items-center justify-center overflow-hidden z-0 md:z-10 order-1 md:order-2">
+
+            <!-- Inactive State UI -->
+            <div *ngIf="!isCameraActive" class="text-center text-neutral-500 opacity-50 relative z-10 p-4">
                 <div
-                    class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-                <div>
-                    <h1
-                        class="text-xl font-bold bg-gradient-to-r from-white to-neutral-400 bg-clip-text text-transparent">
-                        FaceGuard AI</h1>
-                    <div class="text-xs text-neutral-500 font-medium tracking-wider">ANGULAR 19 // HUMAN</div>
-                </div>
-            </div>
-
-            <!-- Stats Grid -->
-            <div class="grid grid-cols-2 gap-3">
-                <div class="p-3 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-colors group">
-                    <div
-                        class="text-[10px] uppercase text-neutral-500 font-bold tracking-widest mb-1 group-hover:text-cyan-400">
-                        FPS</div>
-                    <div class="text-2xl font-mono">{{fps}}</div>
-                </div>
-                <div class="p-3 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-colors group">
-                    <div
-                        class="text-[10px] uppercase text-neutral-500 font-bold tracking-widest mb-1 group-hover:text-blue-400">
-                        Faces</div>
-                    <div class="text-2xl font-mono">{{detectedFaces.length}}</div>
-                </div>
-                <div
-                    class="col-span-2 p-3 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
-                    <div class="flex justify-between items-center mb-1">
-                        <div class="text-[10px] uppercase text-neutral-500 font-bold tracking-widest">Database</div>
-                        <div class="text-xs text-neutral-400">{{imageManager.knownFaces.length}} identities</div>
-                    </div>
-                    <div class="h-1.5 w-full bg-neutral-800 rounded-full overflow-hidden">
-                        <div class="h-full bg-cyan-500 transition-all duration-500"
-                            [style.width.px]="imageManager.knownFaces.length * 5"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Controls -->
-            <div class="flex flex-col gap-3 mt-auto">
-                <!-- Status Badge -->
-                <div
-                    class="flex items-center gap-2 px-3 py-2 rounded-full bg-neutral-900 border border-neutral-800 w-fit self-center mb-4">
-                    <div class="w-2 h-2 rounded-full animate-pulse" [class.bg-green-500]="status === 'Ready'"
-                        [class.bg-yellow-500]="status.includes('Init')" [class.bg-red-500]="status.includes('Error')">
-                    </div>
-                    <span class="text-xs font-medium text-neutral-400">{{status}}</span>
-                </div>
-
-                <div class="space-y-3">
-                    <!-- Speaker Toggle -->
-                    <button (click)="toggleAudio()"
-                        class="w-full py-3.5 px-4 rounded-xl border border-white/5 font-medium transition-all flex items-center justify-center gap-2 group"
-                        [class.bg-purple-600]="isAudioEnabled" [class.text-white]="isAudioEnabled"
-                        [class.bg-neutral-800]="!isAudioEnabled" [class.text-neutral-400]="!isAudioEnabled"
-                        [class.hover:bg-neutral-700]="!isAudioEnabled">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                        </svg>
-                        <span>Speaker: {{ isAudioEnabled ? 'ON' : 'OFF' }}</span>
-                    </button>
-                    <button (click)="startCamera()" *ngIf="!isCameraActive"
-                        class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-semibold shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd"
-                                d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        Start Camera
-                    </button>
-
-                    <label
-                        class="w-full py-3.5 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-medium border border-white/5 cursor-pointer transition-all flex items-center justify-center gap-2 group">
-                        <svg xmlns="http://www.w3.org/2000/svg"
-                            class="w-5 h-5 text-neutral-400 group-hover:text-white transition-colors" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                        </svg>
-                        <span>Import Faces</span>
-                        <input type="file" multiple (change)="onFileSelected($event)" accept="image/*" class="hidden">
-                    </label>
-                </div>
-            </div>
-        </div>
-
-        <!-- Viewport -->
-        <div class="flex-1 relative bg-black flex items-center justify-center overflow-hidden">
-            <div *ngIf="!isCameraActive" class="text-center text-neutral-500 opacity-50">
-                <div class="mb-4 mx-auto w-16 h-16 rounded-full bg-neutral-900 flex items-center justify-center">
+                    class="mb-4 mx-auto w-16 h-16 rounded-full bg-neutral-900 flex items-center justify-center border border-white/5">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                     </svg>
                 </div>
-                <p>Camera is inactive</p>
+                <p class="text-sm font-medium tracking-wide">Camera is inactive</p>
             </div>
 
+            <!-- Active Video & Canvas -->
             <video #video class="absolute inset-0 w-full h-full object-cover" [class.opacity-0]="!isCameraActive" muted
                 playsinline></video>
             <canvas #canvas class="absolute inset-0 w-full h-full object-cover pointer-events-none"></canvas>
 
-            <!-- Scanning Effect Overlay (Optional) -->
+            <!-- Scanning Overlay -->
             <div *ngIf="isCameraActive && !showMatchModal"
                 class="absolute inset-0 pointer-events-none bg-scanlines opacity-10"></div>
 
-            <!-- MATCH MODAL -->
+            <!-- MATCH MODAL OVERLAY (Inside Viewport) -->
             <div *ngIf="showMatchModal"
-                class="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                class="absolute inset-0 z-50 flex items-end md:items-center justify-center bg-black/80 backdrop-blur-sm p-4">
                 <div
-                    class="bg-neutral-900 border border-cyan-500/30 rounded-2xl p-6 max-w-2xl w-full shadow-2xl shadow-cyan-500/20 flex flex-col items-center animate-in fade-in zoom-in duration-300">
+                    class="bg-neutral-900 border border-cyan-500/30 rounded-2xl p-6 max-w-2xl w-full shadow-2xl shadow-cyan-500/20 flex flex-col items-center animate-in fade-in zoom-in duration-300 mb-20 md:mb-0">
 
-
-                    <!-- Header -->
+                    <!-- Modal Header -->
                     <div class="flex flex-col items-center mb-6">
                         <div class="w-16 h-16 rounded-full bg-cyan-500/20 flex items-center justify-center mb-3">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-cyan-500" fill="none"
@@ -144,74 +50,134 @@
                             </svg>
                         </div>
                         <h2 class="text-2xl font-bold text-white mb-1">Match Verified</h2>
-                        <div class="text-cyan-400 font-mono tracking-wider text-sm">CONFIDENCE SCORE: {{ (matchScore *
+                        <div class="text-cyan-400 font-mono tracking-wider text-sm uppercase">Accuracy: {{ (matchScore *
                             100).toFixed(2) }}%</div>
                     </div>
 
-                    <!-- Side by Side -->
-                    <div class="flex flex-col md:flex-row gap-8 items-center justify-center w-full mb-8">
-
-                        <!-- Live Capture -->
-                        <div class="flex flex-col items-center gap-3">
-                            <div class="relative group">
-                                <div
-                                    class="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl blur opacity-40">
-                                </div>
+                    <!-- Comparison View -->
+                    <div class="flex flex-row gap-4 md:gap-8 items-center justify-center w-full mb-8">
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="relative">
                                 <img [src]="matchLiveImage"
-                                    class="relative w-40 h-40 md:w-48 md:h-48 object-cover rounded-xl border-2 border-white/10 shadow-xl bg-black"
-                                    alt="Live Capture">
-                                <div
-                                    class="absolute top-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur rounded text-[10px] font-bold text-cyan-400 uppercase border border-cyan-500/30">
-                                    Live Capture
+                                    class="w-24 h-24 md:w-40 md:h-40 object-cover rounded-xl border-2 border-cyan-500/50 bg-black">
+                                <div class="absolute -bottom-2 inset-x-0 flex justify-center">
+                                    <span
+                                        class="px-2 py-0.5 bg-cyan-500 text-black text-[8px] md:text-[10px] font-black uppercase rounded shadow-lg">Live</span>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Connector -->
-                        <div class="hidden md:flex items-center justify-center text-neutral-600">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                    d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                            </svg>
-                        </div>
-
-                        <!-- Stored Image -->
-                        <div class="flex flex-col items-center gap-3">
-                            <div class="relative group">
-                                <div
-                                    class="absolute -inset-1 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl blur opacity-40">
-                                </div>
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="relative">
                                 <img [src]="matchStoredImage"
-                                    class="relative w-40 h-40 md:w-48 md:h-48 object-cover rounded-xl border-2 border-white/10 shadow-xl bg-black"
-                                    alt="Stored Record">
-                                <div
-                                    class="absolute top-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur rounded text-[10px] font-bold text-purple-400 uppercase border border-purple-500/30">
-                                    Database Record
+                                    class="w-24 h-24 md:w-40 md:h-40 object-cover rounded-xl border-2 border-purple-500/50 bg-black">
+                                <div class="absolute -bottom-2 inset-x-0 flex justify-center">
+                                    <span
+                                        class="px-2 py-0.5 bg-purple-500 text-white text-[8px] md:text-[10px] font-black uppercase rounded shadow-lg">Record</span>
                                 </div>
                             </div>
                         </div>
-
                     </div>
 
-                    <!-- User Info -->
+                    <!-- User Identity -->
                     <div class="text-center mb-8">
-                        <div class="text-neutral-400 text-sm uppercase tracking-widest font-semibold mb-1">Identity
+                        <div class="text-neutral-500 text-[10px] uppercase tracking-[0.3em] font-bold mb-1">Identity
                             Confirmed</div>
-                        <h3 class="text-4xl font-bold text-white">{{matchName}}</h3>
+                        <h3 class="text-3xl md:text-4xl font-black text-white tracking-tight">{{matchName}}</h3>
                     </div>
 
-                    <!-- Action -->
+                    <!-- Close Button -->
                     <button (click)="closeModal()"
-                        class="w-full md:w-auto px-8 py-3 rounded-xl bg-white text-black font-bold hover:bg-neutral-200 transition-colors flex items-center gap-2">
-                        <span>Continue Monitoring</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                        class="w-full md:w-auto px-10 py-4 rounded-xl bg-white text-black font-black hover:bg-neutral-200 active:scale-95 transition-all flex items-center justify-center gap-2">
+                        <span>Continue</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. SIDEBAR (Controls & Info) -->
+        <div
+            class="absolute bottom-0 left-0 w-full max-h-[45vh] z-20 md:relative md:max-h-full md:w-80 lg:w-96 md:h-full transition-all duration-300 pointer-events-none md:pointer-events-auto">
+
+            <div
+                class="h-full w-full bg-gradient-to-t from-black via-black/95 to-transparent md:bg-black/40 md:backdrop-blur-2xl border-t md:border-t-0 md:border-r border-white/10 flex flex-col p-6 gap-6 shadow-2xl pointer-events-auto overflow-y-auto safe-area-bottom">
+
+                <!-- Desktop Header -->
+                <div class="hidden md:flex items-center gap-3 pb-6 border-b border-white/5">
+                    <div
+                        class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h1
+                            class="text-xl font-black bg-gradient-to-r from-white to-neutral-400 bg-clip-text text-transparent">
+                            FaceGuard AI</h1>
+                        <div class="text-[9px] text-cyan-500/50 font-black tracking-widest uppercase mt-0.5">Mobile Core
+                            v2.0</div>
+                    </div>
+                </div>
+
+                <!-- Stats Grid (Hidden on Mobile Camera Active to save space) -->
+                <div class="grid grid-cols-2 gap-3" [class.hidden]="isCameraActive && isMobile">
+                    <div class="p-3 rounded-xl bg-white/5 border border-white/5 backdrop-blur-md">
+                        <div class="text-[9px] uppercase text-neutral-500 font-black tracking-widest mb-1">FPS</div>
+                        <div class="text-2xl font-mono text-cyan-400 leading-none">{{fps}}</div>
+                    </div>
+                    <div class="p-3 rounded-xl bg-white/5 border border-white/5 backdrop-blur-md">
+                        <div class="text-[9px] uppercase text-neutral-500 font-black tracking-widest mb-1">Faces</div>
+                        <div class="text-2xl font-mono text-cyan-400 leading-none">{{detectedFaces.length}}</div>
+                    </div>
+                </div>
+
+                <!-- Main Controls -->
+                <div class="flex flex-col gap-3 mt-auto">
+                    <!-- Status Badge (Mobile View) -->
+                    <div class="md:hidden flex items-center justify-between mb-2">
+                        <span
+                            class="text-[10px] font-black uppercase text-neutral-500 tracking-widest">{{status}}</span>
+                        <div class="w-1.5 h-1.5 rounded-full" [class.bg-green-500]="status === 'Active'"
+                            [class.bg-yellow-500]="status === 'Ready to Start'"
+                            [class.bg-red-500]="status.includes('Error')"></div>
+                    </div>
+
+                    <!-- Speaker Toggle Button -->
+                    <button (click)="toggleAudio()"
+                        [ngClass]="isAudioEnabled ? 'bg-purple-600 text-white' : 'bg-neutral-800 text-neutral-400'"
+                        class="w-full py-4 px-4 rounded-xl border border-white/5 font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2 group">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
                         </svg>
+                        <span>Audio: {{ isAudioEnabled ? 'Enabled' : 'Disabled' }}</span>
                     </button>
 
+                    <!-- Start Camera Button -->
+                    <button (click)="startCamera()" *ngIf="!isCameraActive"
+                        class="w-full py-4 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-black uppercase tracking-widest text-[10px] shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        Launch Camera
+                    </button>
+
+                    <!-- Import Photos -->
+                    <label
+                        class="w-full py-4 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-black uppercase tracking-widest text-[10px] border border-white/5 cursor-pointer transition-all flex items-center justify-center gap-2 group">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            class="w-5 h-5 text-neutral-400 group-hover:text-white transition-colors" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                        <span>Import Database</span>
+                        <input type="file" multiple (change)="onFileSelected($event)" accept="image/*" class="hidden">
+                    </label>
                 </div>
             </div>
         </div>

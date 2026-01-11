@@ -27,6 +27,7 @@ export class FaceDetectorComponent implements AfterViewInit {
   matchName: string = '';
   matchScore: number = 0;
   isAudioEnabled = false; // Default OFF
+  isMobile = false;
 
   constructor(
     private humanService: HumanService,
@@ -43,6 +44,7 @@ export class FaceDetectorComponent implements AfterViewInit {
   async ngAfterViewInit() {
     await this.humanService.init();
     this.status = 'Ready to Start';
+    this.checkMobile();
   }
 
   async startCamera() {
@@ -59,14 +61,22 @@ export class FaceDetectorComponent implements AfterViewInit {
     const memory = (navigator as any).deviceMemory || 8;
     const userAgent = navigator.userAgent.toLowerCase();
     const isAndroid = /android/.test(userAgent);
+    const isPortrait = window.innerHeight > window.innerWidth;
 
     // Config: Android < 5GB = 1920x1440, else Max (4k+)
+    // Default Landscape (Desktop/Laptop)
     let videoConfig: MediaTrackConstraints = {
       width: { ideal: 4096 },
       height: { ideal: 2160 }
     };
 
-    if (isAndroid && memory < 5) {
+    if (isPortrait) {
+      // Mobile Portrait: Prioritize height
+      videoConfig = {
+        width: { ideal: 1080 },
+        height: { ideal: 1920 }
+      };
+    } else if (isAndroid && memory < 5) {
       videoConfig = { width: { ideal: 1920 }, height: { ideal: 1440 } };
       console.log('Low memory Android detected, limiting resolution');
     }
@@ -92,13 +102,21 @@ export class FaceDetectorComponent implements AfterViewInit {
 
       // Resize canvas to match video
       this.resizeCanvas();
-      window.addEventListener('resize', () => this.resizeCanvas());
+      window.addEventListener('resize', () => {
+        this.resizeCanvas();
+        this.checkMobile();
+      });
       this.detectLoop();
     } catch (err) {
       console.error('Camera setup failed', err);
       this.status = 'Camera Error: ' + err;
       this.isCameraActive = false;
+      alert(`Camera Error: ${err}`); // Visual feedback for mobile user
     }
+  }
+
+  checkMobile() {
+    this.isMobile = window.innerWidth < 768;
   }
 
   resizeCanvas() {
@@ -108,7 +126,8 @@ export class FaceDetectorComponent implements AfterViewInit {
 
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    console.log(`Resolution: ${canvas.width}x${canvas.height}`);
+    // Debounce log
+    // console.log(`Resolution: ${canvas.width}x${canvas.height}`);
   }
 
   async detectLoop() {
@@ -280,10 +299,19 @@ export class FaceDetectorComponent implements AfterViewInit {
     const files = event.target.files;
     if (files && files.length) {
       this.status = 'Importing...';
-      this.imageManager.processBatch(files).then(count => {
-        this.status = `Imported ${count} faces`;
-        setTimeout(() => this.status = 'Ready', 3000);
-      });
+
+      // Safety: Process one by one or batch, but handle errors
+      this.imageManager.processBatch(files)
+        .then(count => {
+          this.status = `Imported ${count} faces`;
+          setTimeout(() => this.status = 'Ready', 3000);
+          if (count === 0) alert('No valid faces found in imported photos.');
+        })
+        .catch(err => {
+          console.error('Import Error:', err);
+          this.status = 'Import Failed';
+          alert(`Failed to import photos. Error: ${err.message || err}`);
+        });
     }
   }
 }
