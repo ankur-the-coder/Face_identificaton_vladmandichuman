@@ -83,17 +83,11 @@ export class FaceDetectorComponent implements AfterViewInit {
     // Config: Android < 5GB = 1920x1440, else Max (4k+)
     // Default Landscape (Desktop/Laptop)
     let videoConfig: MediaTrackConstraints = {
-      width: { ideal: 4096 },
-      height: { ideal: 2160 }
+      width: { ideal: 5000 },
+      height: { ideal: 5000 }
     };
 
-    if (isPortrait) {
-      // Mobile Portrait: Prioritize height
-      videoConfig = {
-        width: { ideal: 1080 },
-        height: { ideal: 1920 }
-      };
-    } else if (isAndroid && memory < 5) {
+    if (isAndroid && memory < 5) {
       videoConfig = { width: { ideal: 1920 }, height: { ideal: 1440 } };
       console.log('Low memory Android detected, limiting resolution');
     }
