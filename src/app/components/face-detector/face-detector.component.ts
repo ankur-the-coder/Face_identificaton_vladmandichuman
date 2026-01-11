@@ -83,8 +83,8 @@ export class FaceDetectorComponent implements AfterViewInit {
     // Config: Android < 5GB = 1920x1440, else Max (4k+)
     // Default Landscape (Desktop/Laptop)
     let videoConfig: MediaTrackConstraints = {
-      width: { ideal: 5000 },
-      height: { ideal: 5000 }
+      width: { ideal: 3088 },
+      height: { ideal: 2316 }
     };
 
     if (isAndroid && memory < 5) {
