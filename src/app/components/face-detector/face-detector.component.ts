@@ -88,14 +88,7 @@ export class FaceDetectorComponent implements AfterViewInit {
       height: { ideal: 2316 }
     };
 
-    if (isMobileDevice) {
-      // Mobile: Use 720p max to prevent memory crashes on iOS Safari
-      videoConfig = {
-        width: { ideal: 1920 },
-        height: { ideal: 1440 }
-      };
-      console.log('Mobile device detected, using 720p resolution');
-    } else if (isAndroid && memory < 5) {
+    if (isAndroid && memory < 5) {
       videoConfig = { width: { ideal: 1920 }, height: { ideal: 1440 } };
       console.log('Low memory Android detected, limiting resolution');
     }
