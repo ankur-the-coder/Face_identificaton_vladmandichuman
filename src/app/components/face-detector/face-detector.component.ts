@@ -79,16 +79,21 @@ export class FaceDetectorComponent implements AfterViewInit {
     const userAgent = navigator.userAgent.toLowerCase();
     const isAndroid = /android/.test(userAgent);
     const isPortrait = window.innerHeight > window.innerWidth;
-    const isMobileDevice = /iphone|ipad|ipod|android/i.test(userAgent);
 
-    // Config: Mobile devices need MUCH lower resolution to avoid crashes
-    // Desktop can handle higher resolution
+    // Config: Android < 5GB = 1920x1440, else Max (4k+)
+    // Default Landscape (Desktop/Laptop)
     let videoConfig: MediaTrackConstraints = {
       width: { ideal: 4032 },
       height: { ideal: 3024 }
     };
 
-    if (isAndroid && memory < 5) {
+    if (isPortrait) {
+      // Mobile Portrait: Prioritize height
+      videoConfig = {
+        width: { ideal: 1920 },
+        height: { ideal: 1440 }
+      };
+    } else if (isAndroid && memory < 5) {
       videoConfig = { width: { ideal: 1920 }, height: { ideal: 1440 } };
       console.log('Low memory Android detected, limiting resolution');
     }
@@ -158,75 +163,10 @@ export class FaceDetectorComponent implements AfterViewInit {
       return;
     }
 
-    const video = this.videoEl.nativeElement;
+    // Detect
+    const result: Result = await this.humanService.detect(this.videoEl.nativeElement);
 
-    // STAGE 1: Downsample for FAST face detection (saves memory)
-    const downsampleCanvas = document.createElement('canvas');
-    const downsampleCtx = downsampleCanvas.getContext('2d')!;
-
-    const targetWidth = 640;
-    const targetHeight = 480;
-    downsampleCanvas.width = targetWidth;
-    downsampleCanvas.height = targetHeight;
-
-    downsampleCtx.drawImage(video, 0, 0, targetWidth, targetHeight);
-
-    // Detect on downsampled frame
-    const result: Result = await this.humanService.detect(downsampleCanvas);
-
-    // Calculate scale to map back to original resolution
-    const scaleX = video.videoWidth / targetWidth;
-    const scaleY = video.videoHeight / targetHeight;
-
-    // STAGE 2: For faces with embeddings, re-process from high-res crop
-    if (result.face && result.face.length > 0) {
-      for (let i = 0; i < result.face.length; i++) {
-        const face = result.face[i];
-
-        if (face.embedding && face.box) {
-          // Get bounding box from downsampled detection
-          const [dsX, dsY, dsW, dsH] = face.box;
-
-          // Scale back to original resolution
-          const origX = dsX * scaleX;
-          const origY = dsY * scaleY;
-          const origW = dsW * scaleX;
-          const origH = dsH * scaleY;
-
-          // Add 50% padding
-          const padding = Math.max(origW, origH) * 0.5;
-          const cropX = Math.max(0, origX - padding);
-          const cropY = Math.max(0, origY - padding);
-          const cropW = Math.min(video.videoWidth - cropX, origW + padding * 2);
-          const cropH = Math.min(video.videoHeight - cropY, origH + padding * 2);
-
-          // Create high-res crop
-          const cropCanvas = document.createElement('canvas');
-          const cropCtx = cropCanvas.getContext('2d')!;
-          cropCanvas.width = cropW;
-          cropCanvas.height = cropH;
-
-          cropCtx.drawImage(
-            video,
-            cropX, cropY, cropW, cropH,
-            0, 0, cropW, cropH
-          );
-
-          // Re-detect on HIGH-RES crop for better embedding
-          const cropResult: Result = await this.humanService.detect(cropCanvas);
-
-          if (cropResult.face && cropResult.face.length > 0 && cropResult.face[0].embedding) {
-            // Replace low-res embedding with high-res one
-            result.face[i].embedding = cropResult.face[0].embedding;
-
-            // Update box coordinates to original scale for drawing
-            result.face[i].box = [origX, origY, origW, origH];
-          }
-        }
-      }
-    }
-
-    // Draw (with original-scale boxes)
+    // Draw
     this.draw(result);
 
     // FPS
