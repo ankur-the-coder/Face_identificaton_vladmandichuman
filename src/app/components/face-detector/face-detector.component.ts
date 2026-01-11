@@ -28,6 +28,7 @@ export class FaceDetectorComponent implements AfterViewInit {
   matchScore: number = 0;
   isAudioEnabled = false; // Default OFF
   isMobile = false;
+  showManageModal = false;
 
   constructor(
     private humanService: HumanService,
@@ -38,6 +39,22 @@ export class FaceDetectorComponent implements AfterViewInit {
 
   toggleAudio() {
     this.isAudioEnabled = !this.isAudioEnabled;
+  }
+
+  toggleManage() {
+    this.showManageModal = !this.showManageModal;
+  }
+
+  deleteFace(index: number) {
+    if (confirm('Delete this face from the database?')) {
+      this.imageManager.deleteFace(index);
+    }
+  }
+
+  clearAllFaces() {
+    if (confirm('Delete ALL faces from the database? This cannot be undone.')) {
+      this.imageManager.clearAll();
+    }
   }
 
 

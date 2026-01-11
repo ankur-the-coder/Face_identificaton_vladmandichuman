@@ -94,5 +94,15 @@ export class ImageManagerService {
       imageSrc: matchedFace.imageSrc
     };
   }
+
+  deleteFace(index: number): void {
+    if (index >= 0 && index < this.knownFaces.length) {
+      this.knownFaces.splice(index, 1);
+    }
+  }
+
+  clearAll(): void {
+    this.knownFaces = [];
+  }
 }
 
