@@ -84,8 +84,8 @@ export class FaceDetectorComponent implements AfterViewInit {
     // Config: Mobile devices need MUCH lower resolution to avoid crashes
     // Desktop can handle higher resolution
     let videoConfig: MediaTrackConstraints = {
-      width: { ideal: 3088 },
-      height: { ideal: 2316 }
+      width: { ideal: 1920 },
+      height: { ideal: 1920 }
     };
 
     if (isAndroid && memory < 5) {
